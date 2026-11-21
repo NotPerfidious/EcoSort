@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# MLflow local tracking artifacts (we export reports/screenshots instead)
+mlruns/
+mlflow.db
+mlflow.db-journal
+
+# DVC / Data (DVC handles data/raw via data/raw.dvc)
+/data/processed/
+*.pth
+*.pt
+*.onnx
+*.joblib
+
+# Environment & Secrets
+.env
+.aws/
