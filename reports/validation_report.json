@@ -1,0 +1,23 @@
+{
+  "dvc_raw_md5": "6da0d66e1b91a099580535e13705edc3.dir",
+  "status": "PASSED",
+  "total_checked": 15870,
+  "valid_count": 15869,
+  "quarantined_count": 1,
+  "corrupt_ratio": 6.3e-05,
+  "class_distribution": {
+    "Compost": 1035,
+    "Landfill": 8996,
+    "Recycle": 5838
+  },
+  "failure_reason_counts": {
+    "below_min_resolution": 1
+  },
+  "gate_failures": [],
+  "quarantined_samples_preview": [
+    {
+      "filepath": "data/raw/trash/trash622.jpg",
+      "reason": "below_min_resolution:51x400"
+    }
+  ]
+}

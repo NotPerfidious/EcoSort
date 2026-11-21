@@ -1,0 +1,31 @@
+{
+  "dvc_raw_md5": "6da0d66e1b91a099580535e13705edc3.dir",
+  "seed": 42,
+  "input_valid_images": 15869,
+  "exact_md5_duplicates_removed": 2,
+  "unique_images_after_md5": 15867,
+  "phash_hamming_threshold": 6,
+  "total_phash_clusters": 15456,
+  "near_duplicate_clusters_gt_1": 253,
+  "leakage_assertions_passed": true,
+  "splits": {
+    "train": {
+      "total": 11104,
+      "Compost": 724,
+      "Landfill": 6296,
+      "Recycle": 4084
+    },
+    "val": {
+      "total": 2382,
+      "Compost": 156,
+      "Landfill": 1350,
+      "Recycle": 876
+    },
+    "test": {
+      "total": 2381,
+      "Compost": 155,
+      "Landfill": 1350,
+      "Recycle": 876
+    }
+  }
+}
