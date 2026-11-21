@@ -1,0 +1,60 @@
+stages:
+  prepare:
+    cmd: python -m src.data.prepare_dataset
+    deps:
+      - src/data/prepare_dataset.py
+      - src/utils/tracking.py
+      - data/raw
+    params:
+      - project.seed
+      - data.raw_dir
+      - data.processed_dir
+      - data.class_mapping
+      - data.max_samples_per_class
+    outs:
+      - data/processed/manifest.csv
+
+  validate:
+    cmd: python -m src.data.validate_data
+    deps:
+      - src/data/validate_data.py
+      - src/utils/tracking.py
+      - data/processed/manifest.csv
+    params:
+      - validation
+    outs:
+      - data/processed/validated_manifest.csv
+      - reports/validation_report.json:
+          cache: false
+
+  split:
+    cmd: python -m src.data.split_data
+    deps:
+      - src/data/split_data.py
+      - src/utils/tracking.py
+      - data/processed/validated_manifest.csv
+    params:
+      - project.seed
+      - split
+    outs:
+      - data/processed/splits.csv
+      - reports/split_summary.json:
+          cache: false
+
+  train_baseline:
+    cmd: python -m src.models.train_baseline
+    deps:
+      - src/models/train_baseline.py
+      - src/utils/tracking.py
+      - data/processed/splits.csv
+    params:
+      - project.seed
+      - baseline
+      - mlflow
+    outs:
+      - data/processed/baseline_model.joblib
+      - reports/baseline_confusion_matrix.png:
+          cache: false
+    metrics:
+      - reports/baseline_metrics.json:
+          cache: false

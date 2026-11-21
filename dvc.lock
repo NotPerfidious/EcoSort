@@ -1,0 +1,165 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python -m src.data.prepare_dataset
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: 6da0d66e1b91a099580535e13705edc3.dir
+      size: 270242414
+      nfiles: 15870
+    - path: src/data/prepare_dataset.py
+      hash: md5
+      md5: 45606c52c60f4d9f0fc33c67d619b80e
+      size: 3154
+    - path: src/utils/tracking.py
+      hash: md5
+      md5: fd4286b87e6599b94ac9e26ff8ef7ec2
+      size: 3170
+    params:
+      params.yaml:
+        data.class_mapping:
+          Recycle:
+          - cardboard
+          - paper
+          - plastic
+          - metal
+          - brown-glass
+          - green-glass
+          - white-glass
+          Compost:
+          - biological
+          Landfill:
+          - trash
+          - battery
+          - clothes
+          - shoes
+        data.max_samples_per_class:
+        data.processed_dir: data/processed
+        data.raw_dir: data/raw
+        project.seed: 42
+    outs:
+    - path: data/processed/manifest.csv
+      hash: md5
+      md5: f3823e533cb94cd0d2549d9251340a70
+      size: 834160
+  validate:
+    cmd: python -m src.data.validate_data
+    deps:
+    - path: data/processed/manifest.csv
+      hash: md5
+      md5: f3823e533cb94cd0d2549d9251340a70
+      size: 834160
+    - path: src/data/validate_data.py
+      hash: md5
+      md5: 7bb32dee224a0ca3f9cf1be2e410ba6d
+      size: 5721
+    - path: src/utils/tracking.py
+      hash: md5
+      md5: fd4286b87e6599b94ac9e26ff8ef7ec2
+      size: 3170
+    params:
+      params.yaml:
+        validation:
+          min_width: 64
+          min_height: 64
+          min_samples_per_class: 100
+          max_corrupt_ratio: 0.05
+          allowed_extensions:
+          - .jpg
+          - .jpeg
+          - .png
+          - .webp
+          report_path: reports/validation_report.json
+    outs:
+    - path: data/processed/validated_manifest.csv
+      hash: md5
+      md5: b981ba1b0017b636876f0dec2a08421d
+      size: 961080
+    - path: reports/validation_report.json
+      hash: md5
+      md5: 60695b3426c3a96ae95a7a0cdcce27f3
+      size: 535
+  split:
+    cmd: python -m src.data.split_data
+    deps:
+    - path: data/processed/validated_manifest.csv
+      hash: md5
+      md5: b981ba1b0017b636876f0dec2a08421d
+      size: 961080
+    - path: src/data/split_data.py
+      hash: md5
+      md5: 56e55dcfdbdba8061aef516175c045e4
+      size: 9269
+    - path: src/utils/tracking.py
+      hash: md5
+      md5: fd4286b87e6599b94ac9e26ff8ef7ec2
+      size: 3170
+    params:
+      params.yaml:
+        project.seed: 42
+        split:
+          train_ratio: 0.7
+          val_ratio: 0.15
+          test_ratio: 0.15
+          phash_size: 8
+          phash_hamming_threshold: 6
+          splits_csv: data/processed/splits.csv
+          summary_path: reports/split_summary.json
+    outs:
+    - path: data/processed/splits.csv
+      hash: md5
+      md5: 0fddc59eccd335a7f4aaf8e8becea2d4
+      size: 1926063
+    - path: reports/split_summary.json
+      hash: md5
+      md5: 6b5afc745ef9630e7472a026ddfc19af
+      size: 695
+  train_baseline:
+    cmd: python -m src.models.train_baseline
+    deps:
+    - path: data/processed/splits.csv
+      hash: md5
+      md5: 0fddc59eccd335a7f4aaf8e8becea2d4
+      size: 1926063
+    - path: src/models/train_baseline.py
+      hash: md5
+      md5: d0911d7cf1c7c87136f82a454ccf48dd
+      size: 10115
+    - path: src/utils/tracking.py
+      hash: md5
+      md5: fd4286b87e6599b94ac9e26ff8ef7ec2
+      size: 3170
+    params:
+      params.yaml:
+        baseline:
+          image_size: 128
+          hsv_bins:
+          - 8
+          - 8
+          - 8
+          model_type: random_forest
+          n_estimators: 200
+          max_depth: 18
+          n_jobs: -1
+          metrics_path: reports/baseline_metrics.json
+          cm_path: reports/baseline_confusion_matrix.png
+          model_out: data/processed/baseline_model.joblib
+        mlflow:
+          tracking_uri: sqlite:///mlflow.db
+          experiment_name: EcoSort-Deliverable1
+          registered_model_name: EcoSort-Tier1-MobileNetV4
+        project.seed: 42
+    outs:
+    - path: data/processed/baseline_model.joblib
+      hash: md5
+      md5: 76059d1b22dd201ff655f913310b6490
+      size: 33109825
+    - path: reports/baseline_confusion_matrix.png
+      hash: md5
+      md5: 97e8d4eeadb3f4610ec41ca3fec4a9d1
+      size: 59544
+    - path: reports/baseline_metrics.json
+      hash: md5
+      md5: 98df8a549c6a4654d651a0ce767144bc
+      size: 774
