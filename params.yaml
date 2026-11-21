@@ -1,0 +1,78 @@
+project:
+  name: "EcoSort"
+  seed: 42
+
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  dvc_file: "data/raw.dvc"
+  # Deterministic mapping from the 12-class Garbage Classification dataset -> 3 EcoSort classes
+  class_mapping:
+    Recycle:
+      - cardboard
+      - paper
+      - plastic
+      - metal
+      - brown-glass
+      - green-glass
+      - white-glass
+    Compost:
+      - biological
+    Landfill:
+      - trash
+      - battery
+      - clothes
+      - shoes
+  # Set to null to use all ~15,000 images, or an integer (e.g., 1500) to cap per class for faster CPU iteration
+  max_samples_per_class: null
+
+validation:
+  min_width: 64
+  min_height: 64
+  min_samples_per_class: 100
+  max_corrupt_ratio: 0.05  # Fail pipeline if >5% of dataset is corrupted
+  allowed_extensions:
+    - ".jpg"
+    - ".jpeg"
+    - ".png"
+    - ".webp"
+  report_path: "reports/validation_report.json"
+
+split:
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+  phash_size: 8
+  phash_hamming_threshold: 6  # Images with Hamming distance <= 6 are grouped in the same split
+  splits_csv: "data/processed/splits.csv"
+  summary_path: "reports/split_summary.json"
+
+baseline:
+  image_size: 128
+  hsv_bins: [8, 8, 8]
+  model_type: "random_forest"  # Options: "random_forest", "logistic_regression"
+  n_estimators: 200
+  max_depth: 18
+  n_jobs: -1
+  metrics_path: "reports/baseline_metrics.json"
+  cm_path: "reports/baseline_confusion_matrix.png"
+  model_out: "data/processed/baseline_model.joblib"
+
+mobilenetv4:
+  model_name: "mobilenetv4_conv_small.e2400_r224_in1k"
+  image_size: 224
+  batch_size: 32
+  epochs: 8
+  unfreeze_blocks: 1  # 0 = head-only, 1 or 2 = partial unfreezing of final conv stage(s)
+  lr_head: 0.001
+  lr_backbone: 0.0001
+  weight_decay: 0.0001
+  dropout: 0.2
+  num_workers: 4
+  checkpoint_path: "data/processed/mobilenetv4_best.pt"
+  metrics_path: "reports/mobilenetv4_metrics.json"
+
+mlflow:
+  tracking_uri: "sqlite:///mlflow.db"
+  experiment_name: "EcoSort-Deliverable1"
+  registered_model_name: "EcoSort-Tier1-MobileNetV4"
