@@ -24,7 +24,7 @@ data:
       - clothes
       - shoes
   # Set to null to use all ~15,000 images, or an integer (e.g., 1500) to cap per class for faster CPU iteration
-  max_samples_per_class: null
+  max_samples_per_class: 1000
 
 validation:
   min_width: 64
@@ -62,13 +62,13 @@ mobilenetv4:
   model_name: "mobilenetv4_conv_small.e2400_r224_in1k"
   image_size: 224
   batch_size: 32
-  epochs: 8
+  epochs: 3
   unfreeze_blocks: 1  # 0 = head-only, 1 or 2 = partial unfreezing of final conv stage(s)
   lr_head: 0.001
   lr_backbone: 0.0001
   weight_decay: 0.0001
   dropout: 0.2
-  num_workers: 4
+  num_workers: 0
   checkpoint_path: "data/processed/mobilenetv4_best.pt"
   metrics_path: "reports/mobilenetv4_metrics.json"
 

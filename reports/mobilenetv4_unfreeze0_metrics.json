@@ -1,0 +1,33 @@
+{
+  "run_name": "mobilenetv4-head-only",
+  "mlflow_run_id": "1c7559534760408787657a5f8121e98f",
+  "unfreeze_blocks": 0,
+  "best_epoch": 3,
+  "best_val_accuracy": 0.5711,
+  "best_val_macro_f1": 0.5717,
+  "training_time_sec": 365.0,
+  "checkpoint_path": "data\\processed\\mobilenetv4_unfreeze0.pt",
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 4.5361,
+      "val_loss": 2.9887,
+      "val_accuracy": 0.4489,
+      "val_macro_f1": 0.4506
+    },
+    {
+      "epoch": 2,
+      "train_loss": 3.5293,
+      "val_loss": 2.4027,
+      "val_accuracy": 0.5444,
+      "val_macro_f1": 0.5431
+    },
+    {
+      "epoch": 3,
+      "train_loss": 3.1982,
+      "val_loss": 2.2512,
+      "val_accuracy": 0.5711,
+      "val_macro_f1": 0.5717
+    }
+  ]
+}

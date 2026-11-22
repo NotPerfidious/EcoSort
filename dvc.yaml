@@ -58,3 +58,38 @@ stages:
     metrics:
       - reports/baseline_metrics.json:
           cache: false
+
+  train_mobilenetv4:
+    cmd: python -m src.models.train_mobilenetv4
+    deps:
+      - src/models/train_mobilenetv4.py
+      - src/utils/tracking.py
+      - data/processed/splits.csv
+    params:
+      - project.seed
+      - mobilenetv4
+      - mlflow
+    outs:
+      - data/processed/mobilenetv4_best.pt
+    metrics:
+      - reports/mobilenetv4_metrics.json:
+          cache: false
+
+  evaluate_register:
+    cmd: python -m src.models.evaluate_register
+    deps:
+      - src/models/evaluate_register.py
+      - src/utils/tracking.py
+      - data/processed/splits.csv
+      - data/processed/mobilenetv4_best.pt
+      - reports/baseline_metrics.json
+    params:
+      - project.seed
+      - mobilenetv4.batch_size
+      - mlflow
+    outs:
+      - reports/mobilenetv4_confusion_matrix.png:
+          cache: false
+    metrics:
+      - reports/evaluation_summary.json:
+          cache: false

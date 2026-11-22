@@ -1,0 +1,23 @@
+{
+  "mlflow_run_id": "8193e051e3084486acd3067ece60ae87",
+  "promoted": true,
+  "registered_model_name": "EcoSort-Tier1-MobileNetV4",
+  "registered_version": 2,
+  "alias": "champion",
+  "metrics": {
+    "test_accuracy": 0.88,
+    "test_macro_f1": 0.8807,
+    "test_weighted_f1": 0.8807,
+    "baseline_test_macro_f1": 0.8083,
+    "f1_gain_over_baseline": 0.0724,
+    "test_f1_recycle": 0.8424,
+    "test_precision_recycle": 0.8137,
+    "test_recall_recycle": 0.8733,
+    "test_f1_compost": 0.9388,
+    "test_precision_compost": 0.9583,
+    "test_recall_compost": 0.92,
+    "test_f1_landfill": 0.861,
+    "test_precision_landfill": 0.8759,
+    "test_recall_landfill": 0.8467
+  }
+}
