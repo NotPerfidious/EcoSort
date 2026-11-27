@@ -74,8 +74,13 @@ def main() -> None:
     max_per_class = params["data"].get("max_samples_per_class")
     if max_per_class is not None:
         df = (
-            df.groupby("label", group_keys=False)
-            .apply(lambda g: g.sample(n=min(len(g), int(max_per_class)), random_state=seed))
+            pd.concat(
+                [
+                    g.sample(n=min(len(g), int(max_per_class)), random_state=seed)
+                    for _, g in df.groupby("label", sort=True)
+                ],
+                ignore_index=True,
+            )
             .sort_values("filepath")
             .reset_index(drop=True)
         )

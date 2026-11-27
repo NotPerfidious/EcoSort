@@ -1,23 +1,16 @@
 {
   "dvc_raw_md5": "6da0d66e1b91a099580535e13705edc3.dir",
   "status": "PASSED",
-  "total_checked": 15870,
-  "valid_count": 15869,
-  "quarantined_count": 1,
-  "corrupt_ratio": 6.3e-05,
+  "total_checked": 3000,
+  "valid_count": 3000,
+  "quarantined_count": 0,
+  "corrupt_ratio": 0.0,
   "class_distribution": {
-    "Compost": 1035,
-    "Landfill": 8996,
-    "Recycle": 5838
+    "Compost": 1000,
+    "Landfill": 1000,
+    "Recycle": 1000
   },
-  "failure_reason_counts": {
-    "below_min_resolution": 1
-  },
+  "failure_reason_counts": {},
   "gate_failures": [],
-  "quarantined_samples_preview": [
-    {
-      "filepath": "data/raw/trash/trash622.jpg",
-      "reason": "below_min_resolution:51x400"
-    }
-  ]
+  "quarantined_samples_preview": []
 }

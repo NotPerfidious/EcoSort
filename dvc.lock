@@ -10,8 +10,8 @@ stages:
       nfiles: 15870
     - path: src/data/prepare_dataset.py
       hash: md5
-      md5: 45606c52c60f4d9f0fc33c67d619b80e
-      size: 3154
+      md5: a9d7a87de1aea7612b19beb07264bc2c
+      size: 3271
     - path: src/utils/tracking.py
       hash: md5
       md5: fd4286b87e6599b94ac9e26ff8ef7ec2
@@ -34,22 +34,22 @@ stages:
           - battery
           - clothes
           - shoes
-        data.max_samples_per_class:
+        data.max_samples_per_class: 1000
         data.processed_dir: data/processed
         data.raw_dir: data/raw
         project.seed: 42
     outs:
     - path: data/processed/manifest.csv
       hash: md5
-      md5: f3823e533cb94cd0d2549d9251340a70
-      size: 834160
+      md5: 6e0a4da44097d133db6836cf155436f6
+      size: 164787
   validate:
     cmd: python -m src.data.validate_data
     deps:
     - path: data/processed/manifest.csv
       hash: md5
-      md5: f3823e533cb94cd0d2549d9251340a70
-      size: 834160
+      md5: 6e0a4da44097d133db6836cf155436f6
+      size: 164787
     - path: src/data/validate_data.py
       hash: md5
       md5: 7bb32dee224a0ca3f9cf1be2e410ba6d
@@ -74,19 +74,19 @@ stages:
     outs:
     - path: data/processed/validated_manifest.csv
       hash: md5
-      md5: b981ba1b0017b636876f0dec2a08421d
-      size: 961080
+      md5: 23df77207d404e631f4c7609570a2098
+      size: 188801
     - path: reports/validation_report.json
       hash: md5
-      md5: 60695b3426c3a96ae95a7a0cdcce27f3
-      size: 535
+      md5: 98566280a1291e9119e515fdf14c9d54
+      size: 379
   split:
     cmd: python -m src.data.split_data
     deps:
     - path: data/processed/validated_manifest.csv
       hash: md5
-      md5: b981ba1b0017b636876f0dec2a08421d
-      size: 961080
+      md5: 23df77207d404e631f4c7609570a2098
+      size: 188801
     - path: src/data/split_data.py
       hash: md5
       md5: 56e55dcfdbdba8061aef516175c045e4
@@ -109,19 +109,19 @@ stages:
     outs:
     - path: data/processed/splits.csv
       hash: md5
-      md5: 0fddc59eccd335a7f4aaf8e8becea2d4
-      size: 1926063
+      md5: fa6311b4062cc6135a2ba8832f787e93
+      size: 369355
     - path: reports/split_summary.json
       hash: md5
-      md5: 6b5afc745ef9630e7472a026ddfc19af
-      size: 695
+      md5: cc2e141694df73492a02917f3a2af539
+      size: 684
   train_baseline:
     cmd: python -m src.models.train_baseline
     deps:
     - path: data/processed/splits.csv
       hash: md5
-      md5: 0fddc59eccd335a7f4aaf8e8becea2d4
-      size: 1926063
+      md5: fa6311b4062cc6135a2ba8832f787e93
+      size: 369355
     - path: src/models/train_baseline.py
       hash: md5
       md5: d0911d7cf1c7c87136f82a454ccf48dd
@@ -153,13 +153,97 @@ stages:
     outs:
     - path: data/processed/baseline_model.joblib
       hash: md5
-      md5: 76059d1b22dd201ff655f913310b6490
-      size: 33109825
+      md5: 0c9898515e09cc88d1243ead98af6052
+      size: 9700721
     - path: reports/baseline_confusion_matrix.png
       hash: md5
-      md5: 97e8d4eeadb3f4610ec41ca3fec4a9d1
-      size: 59544
+      md5: d36fec4cb8594a78bfb49dda21aecb7f
+      size: 57235
     - path: reports/baseline_metrics.json
       hash: md5
-      md5: 98df8a549c6a4654d651a0ce767144bc
-      size: 774
+      md5: 06644c3e7cc5bbe3998eec1c7397a371
+      size: 775
+  train_mobilenetv4:
+    cmd: python -m src.models.train_mobilenetv4
+    deps:
+    - path: data/processed/splits.csv
+      hash: md5
+      md5: fa6311b4062cc6135a2ba8832f787e93
+      size: 369355
+    - path: src/models/train_mobilenetv4.py
+      hash: md5
+      md5: e402ae1ea3d5bfab1c8d04f1dedcbed6
+      size: 13868
+    - path: src/utils/tracking.py
+      hash: md5
+      md5: fd4286b87e6599b94ac9e26ff8ef7ec2
+      size: 3170
+    params:
+      params.yaml:
+        mlflow:
+          tracking_uri: sqlite:///mlflow.db
+          experiment_name: EcoSort-Deliverable1
+          registered_model_name: EcoSort-Tier1-MobileNetV4
+        mobilenetv4:
+          model_name: mobilenetv4_conv_small.e2400_r224_in1k
+          image_size: 224
+          batch_size: 32
+          epochs: 3
+          unfreeze_blocks: 1
+          lr_head: 0.001
+          lr_backbone: 0.0001
+          weight_decay: 0.0001
+          dropout: 0.2
+          num_workers: 0
+          checkpoint_path: data/processed/mobilenetv4_best.pt
+          metrics_path: reports/mobilenetv4_metrics.json
+        project.seed: 42
+    outs:
+    - path: data/processed/mobilenetv4_best.pt
+      hash: md5
+      md5: ea99762b1f0d56baf16aeea78e832643
+      size: 10189327
+    - path: reports/mobilenetv4_metrics.json
+      hash: md5
+      md5: 5d61db16a5befcd08a968ea6a61f9adb
+      size: 782
+  evaluate_register:
+    cmd: python -m src.models.evaluate_register
+    deps:
+    - path: data/processed/mobilenetv4_best.pt
+      hash: md5
+      md5: ea99762b1f0d56baf16aeea78e832643
+      size: 10189327
+    - path: data/processed/splits.csv
+      hash: md5
+      md5: fa6311b4062cc6135a2ba8832f787e93
+      size: 369355
+    - path: reports/baseline_metrics.json
+      hash: md5
+      md5: 06644c3e7cc5bbe3998eec1c7397a371
+      size: 775
+    - path: src/models/evaluate_register.py
+      hash: md5
+      md5: b288b3918aaf8aba0f5f3dcb3b7c341e
+      size: 8346
+    - path: src/utils/tracking.py
+      hash: md5
+      md5: fd4286b87e6599b94ac9e26ff8ef7ec2
+      size: 3170
+    params:
+      params.yaml:
+        mlflow:
+          tracking_uri: sqlite:///mlflow.db
+          experiment_name: EcoSort-Deliverable1
+          registered_model_name: EcoSort-Tier1-MobileNetV4
+        mobilenetv4.batch_size: 32
+        project.seed: 42
+    outs:
+    - path: reports/evaluation_summary.json
+      hash: md5
+      md5: 44d15326d8d7b9d3eb4d287615f6bce6
+      size: 699
+    - path: reports/mobilenetv4_confusion_matrix.png
+      hash: md5
+      md5: ae9313ed46b0f895d0a76e4d4a2f2450
+      size: 38508
