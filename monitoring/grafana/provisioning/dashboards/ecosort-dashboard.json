@@ -1,0 +1,319 @@
+{
+    "uid": "ecosort-live-ops",
+    "title": "EcoSort — Live Inference & Drift Observability",
+    "tags": [
+        "ecosort",
+        "mlops"
+    ],
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5s",
+    "time": {
+        "from": "now-30m",
+        "to": "now"
+    },
+    "panels": [
+        {
+            "id": 1,
+            "type": "stat",
+            "title": "1. Total Requests & Active Threshold (tau)",
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "gridPos": {
+                "h": 6,
+                "w": 6,
+                "x": 0,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "sum(ecosort_requests_total)",
+                    "legendFormat": "Total Requests",
+                    "refId": "A"
+                },
+                {
+                    "expr": "ecosort_confidence_threshold",
+                    "legendFormat": "Active tau",
+                    "refId": "B"
+                }
+            ],
+            "options": {
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ]
+                },
+                "orientation": "vertical"
+            }
+        },
+        {
+            "id": 2,
+            "type": "timeseries",
+            "title": "2. End-to-End & Per-Tier Latency (P50 / P95 ms)",
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "gridPos": {
+                "h": 6,
+                "w": 10,
+                "x": 6,
+                "y": 0
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "ms"
+                }
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.50, sum(rate(ecosort_request_latency_ms_bucket[5m])) by (le))",
+                    "legendFormat": "E2E P50",
+                    "refId": "A"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(ecosort_request_latency_ms_bucket[5m])) by (le))",
+                    "legendFormat": "E2E P95",
+                    "refId": "B"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, sum(rate(ecosort_tier_latency_ms_bucket[5m])) by (le, tier))",
+                    "legendFormat": "{{tier}} P95",
+                    "refId": "C"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "type": "piechart",
+            "title": "3. Routing Tier Breakdown",
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "gridPos": {
+                "h": 6,
+                "w": 8,
+                "x": 16,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "sum by (tier_used) (ecosort_requests_total)",
+                    "legendFormat": "{{tier_used}}",
+                    "refId": "A"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "type": "stat",
+            "title": "4. Circuit Breaker State & SLA Fallbacks",
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "gridPos": {
+                "h": 6,
+                "w": 8,
+                "x": 0,
+                "y": 6
+            },
+            "fieldConfig": {
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "CB State"
+                        },
+                        "properties": [
+                            {
+                                "id": "mappings",
+                                "value": [
+                                    {
+                                        "type": "value",
+                                        "options": {
+                                            "0": {
+                                                "text": "CLOSED",
+                                                "color": "green"
+                                            },
+                                            "1": {
+                                                "text": "HALF_OPEN",
+                                                "color": "yellow"
+                                            },
+                                            "2": {
+                                                "text": "OPEN",
+                                                "color": "red"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "targets": [
+                {
+                    "expr": "ecosort_circuit_breaker_state",
+                    "legendFormat": "CB State",
+                    "refId": "A"
+                },
+                {
+                    "expr": "sum(ecosort_fallback_total) or vector(0)",
+                    "legendFormat": "Fallbacks",
+                    "refId": "B"
+                },
+                {
+                    "expr": "sum(ecosort_requests_total{status=\"error\"}) or vector(0)",
+                    "legendFormat": "Errors",
+                    "refId": "C"
+                }
+            ],
+            "options": {
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ]
+                },
+                "colorMode": "background"
+            }
+        },
+        {
+            "id": 5,
+            "type": "timeseries",
+            "title": "5. Shadow INT8 Agreement Rate & Latency Delta",
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "gridPos": {
+                "h": 6,
+                "w": 8,
+                "x": 8,
+                "y": 6
+            },
+            "targets": [
+                {
+                    "expr": "100 * (sum(ecosort_shadow_agreement_total{agreed=\"true\"}) / clamp_min(sum(ecosort_shadow_agreement_total), 1))",
+                    "legendFormat": "INT8 Agreement (%)",
+                    "refId": "A"
+                },
+                {
+                    "expr": "ecosort_shadow_latency_delta_ms",
+                    "legendFormat": "INT8 - FP32 Delta (ms)",
+                    "refId": "B"
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "type": "stat",
+            "title": "6. Active Learning S3 Ingestion Count",
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "gridPos": {
+                "h": 6,
+                "w": 8,
+                "x": 16,
+                "y": 6
+            },
+            "targets": [
+                {
+                    "expr": "sum by (status) (ecosort_active_learning_uploads_total)",
+                    "legendFormat": "{{status}}",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ]
+                }
+            }
+        },
+        {
+            "id": 7,
+            "type": "gauge",
+            "title": "7. Input Drift (Rolling Brightness Z-Score)",
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "gridPos": {
+                "h": 7,
+                "w": 10,
+                "x": 0,
+                "y": 12
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "min": 0,
+                    "max": 3,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 0.8
+                            },
+                            {
+                                "color": "red",
+                                "value": 1.2
+                            }
+                        ]
+                    }
+                }
+            },
+            "targets": [
+                {
+                    "expr": "ecosort_input_brightness_drift_zscore",
+                    "legendFormat": "Brightness Z-Score",
+                    "refId": "A"
+                },
+                {
+                    "expr": "ecosort_drift_alert_active",
+                    "legendFormat": "Drift Alert (0/1)",
+                    "refId": "B"
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "type": "timeseries",
+            "title": "8. Prediction Drift (Rolling Confidence & Class PSI)",
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "gridPos": {
+                "h": 7,
+                "w": 14,
+                "x": 10,
+                "y": 12
+            },
+            "targets": [
+                {
+                    "expr": "ecosort_prediction_confidence_rolling_mean",
+                    "legendFormat": "Rolling Mean Confidence",
+                    "refId": "A"
+                },
+                {
+                    "expr": "ecosort_prediction_distribution_psi",
+                    "legendFormat": "Class Distribution PSI",
+                    "refId": "B"
+                }
+            ]
+        }
+    ]
+}

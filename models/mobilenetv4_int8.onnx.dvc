@@ -1,0 +1,5 @@
+outs:
+- md5: ca2b81876c548eb535d1ce7b7afe2534
+  size: 3872333
+  hash: md5
+  path: mobilenetv4_int8.onnx

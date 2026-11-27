@@ -1,0 +1,86 @@
+services:
+  tier1-service:
+    build: ./tier1-service
+    container_name: ecosort-tier1
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./models:/models:ro
+    environment:
+      - FP32_MODEL_PATH=/models/mobilenetv4_fp32.onnx
+      - INT8_MODEL_PATH=/models/mobilenetv4_int8.onnx
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=2)" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  tier2-service:
+    build: ./tier2-service
+    container_name: ecosort-tier2
+    ports:
+      - "8002:8002"
+    environment:
+      - CLIP_MODEL_ID=openai/clip-vit-base-patch32
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health', timeout=2)" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: ecosort-gateway
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - TIER1_URL=http://tier1-service:8001
+      - TIER2_URL=http://tier2-service:8002
+      - REFERENCE_STATS_PATH=/models/reference_stats.json
+      - TELEMETRY_PATH=/reports/inference_telemetry.jsonl
+    volumes:
+      - ./models:/models:ro
+      - ./reports:/reports
+    depends_on:
+      tier1-service:
+        condition: service_healthy
+      tier2-service:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2)" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: ecosort-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: ecosort-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped

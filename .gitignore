@@ -13,7 +13,7 @@ mlflow.db-journal
 /data/processed/
 *.pth
 *.pt
-*.onnx
+# *.onnx
 *.joblib
 
 # Environment & Secrets

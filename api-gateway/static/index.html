@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EcoSort — Adaptive Multi-Tier Inference Gateway</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --recycle: #38bdf8;
+            --compost: #4ade80;
+            --landfill: #fb923c;
+            --danger: #f87171;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 860px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card h2 {
+            margin: 0 0 14px;
+            font-size: 1.05rem;
+            color: #e2e8f0;
+        }
+
+        .dropzone {
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 28px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .dropzone:hover,
+        .dropzone.drag {
+            border-color: var(--recycle);
+            background: rgba(56, 189, 248, 0.06);
+        }
+
+        .btn {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #334155;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .badge.Recycle {
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--recycle);
+        }
+
+        .badge.Compost {
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--compost);
+        }
+
+        .badge.Landfill {
+            background: rgba(251, 146, 60, 0.2);
+            color: var(--landfill);
+        }
+
+        .badge.warn {
+            background: rgba(248, 113, 113, 0.2);
+            color: var(--danger);
+        }
+
+        .bar-wrap {
+            margin: 10px 0;
+        }
+
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .bar-bg {
+            background: #0f172a;
+            border-radius: 6px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        .img-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .img-box {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .img-box img {
+            width: 100%;
+            max-height: 224px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        .img-box span {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        input[type="range"],
+        input[type="number"] {
+            width: 100%;
+        }
+
+        input[type="number"] {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 8px;
+            border-radius: 6px;
+        }
+
+        .kv {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.84rem;
+            margin-top: 12px;
+        }
+
+        .kv div {
+            background: #0f172a;
+            padding: 8px 10px;
+            border-radius: 8px;
+        }
+
+        .kv b {
+            display: block;
+            color: var(--muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>EcoSort — Adaptive Multi-Tier Waste Classification</h1>
+                <div class="subtitle">Tier-1 Fine-Tuned MobileNetV4 (ONNX + Spatial CAM) &rarr; Tier-2 OpenAI CLIP
+                    (ViT-B/32)</div>
+            </div>
+            <div class="row">
+                <a class="badge" href="/docs" target="_blank" style="text-decoration:none;">Swagger API Docs</a>
+                <a class="badge" href="/metrics" target="_blank" style="text-decoration:none;">Prometheus /metrics</a>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- Left Column: Upload & Dynamic Config -->
+            <div style="display:flex; flex-direction:column; gap:20px;">
+                <div class="card">
+                    <h2>1. Submit Waste Image</h2>
+                    <div id="dropzone" class="dropzone">
+                        <p style="margin:0 0 8px;">Drag &amp; drop a waste image here, or click to select</p>
+                        <span style="font-size:0.8rem; color:var(--muted);">JPG / PNG / WEBP</span>
+                        <input id="fileInput" type="file" accept="image/*" class="hidden" />
+                    </div>
+                    <div class="row" style="margin-top:14px; justify-content:space-between;">
+                        <span id="fileName" style="font-size:0.85rem; color:var(--muted);">No file selected</span>
+                        <button id="predictBtn" class="btn" disabled>Classify &amp; Explain</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>2. Dynamic Runtime Config (Hot-Reload)</h2>
+                    <div class="control-group">
+                        <label><span>Confidence Threshold (&tau;)</span><strong id="tauVal">0.75</strong></label>
+                        <input id="tauInput" type="range" min="0.10" max="0.99" step="0.01" value="0.75" />
+                    </div>
+                    <div class="control-group">
+                        <label><span>Tier-2 SLA Timeout (ms)</span></label>
+                        <input id="slaInput" type="number" min="50" max="15000" step="50" value="1500" />
+                    </div>
+                    <div class="row" style="margin-bottom:12px; font-size:0.85rem;">
+                        <label><input id="shadowToggle" type="checkbox" checked /> INT8 Shadow Mirror</label>
+                        <label><input id="alToggle" type="checkbox" checked /> S3 Active Learning</label>
+                    </div>
+                    <div class="row" style="justify-content:space-between;">
+                        <span id="cfgStatus" style="font-size:0.8rem; color:var(--muted);">Synced with gateway</span>
+                        <button id="saveCfgBtn" class="btn btn-secondary">Apply Live Config</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Prediction, Confidence & CAM Saliency -->
+            <div class="card">
+                <h2>3. Inference Result &amp; Visual Explanation</h2>
+                <div id="placeholder" style="color:var(--muted); padding:32px 0; text-align:center;">
+                    Upload an image to see real-time multi-tier routing, confidence scores, and Spatial CAM saliency
+                    map.
+                </div>
+                <div id="resultBox" class="hidden">
+                    <div class="row" style="justify-content:space-between; margin-bottom:12px;">
+                        <div class="row">
+                            <span id="predBadge" class="badge" style="font-size:1.05rem; padding:6px 14px;">-</span>
+                            <span id="confText" style="font-weight:700; font-size:1.1rem;">-</span>
+                        </div>
+                        <div class="row">
+                            <span id="tierBadge" class="badge">-</span>
+                            <span id="cbBadge" class="badge">-</span>
+                        </div>
+                    </div>
+
+                    <div id="probBars"></div>
+
+                    <div class="img-pair">
+                        <div class="img-box">
+                            <img id="origPreview" alt="Original input" />
+                            <span>Original Input</span>
+                        </div>
+                        <div class="img-box">
+                            <img id="camPreview" alt="Spatial CAM Saliency Map" />
+                            <span>Spatial CAM Saliency Overlay (Tier-1)</span>
+                        </div>
+                    </div>
+
+                    <div class="kv">
+                        <div><b>Total Latency</b><span id="latTotal">-</span></div>
+                        <div><b>Tier-1 / Tier-2 Latency</b><span id="latTiers">-</span></div>
+                        <div><b>Escalated / Fallback</b><span id="escInfo">-</span></div>
+                        <div><b>Shadow / Active Learning</b><span id="asyncInfo">-</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropzone = document.getElementById("dropzone");
+        const fileInput = document.getElementById("fileInput");
+        const fileName = document.getElementById("fileName");
+        const predictBtn = document.getElementById("predictBtn");
+        const tauInput = document.getElementById("tauInput");
+        const tauVal = document.getElementById("tauVal");
+        const slaInput = document.getElementById("slaInput");
+        const shadowToggle = document.getElementById("shadowToggle");
+        const alToggle = document.getElementById("alToggle");
+        const cfgStatus = document.getElementById("cfgStatus");
+        let selectedFile = null;
+
+        async function loadConfig() {
+            const res = await fetch("/admin/config");
+            if (!res.ok) return;
+            const cfg = await res.json();
+            tauInput.value = cfg.confidence_threshold;
+            tauVal.textContent = Number(cfg.confidence_threshold).toFixed(2);
+            slaInput.value = cfg.sla_timeout_ms;
+            shadowToggle.checked = cfg.shadow_enabled;
+            alToggle.checked = cfg.active_learning_enabled;
+        }
+
+        tauInput.addEventListener("input", () => {
+            tauVal.textContent = Number(tauInput.value).toFixed(2);
+        });
+
+        document.getElementById("saveCfgBtn").addEventListener("click", async () => {
+            cfgStatus.textContent = "Updating...";
+            const res = await fetch("/admin/config", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    confidence_threshold: parseFloat(tauInput.value),
+                    sla_timeout_ms: parseInt(slaInput.value, 10),
+                    shadow_enabled: shadowToggle.checked,
+                    active_learning_enabled: alToggle.checked,
+                }),
+            });
+            cfgStatus.textContent = res.ok ? "Hot-reloaded (no restart!)" : "Update failed";
+        });
+
+        function setFile(file) {
+            selectedFile = file;
+            fileName.textContent = file.name;
+            predictBtn.disabled = false;
+            document.getElementById("origPreview").src = URL.createObjectURL(file);
+        }
+
+        dropzone.addEventListener("click", () => fileInput.click());
+        fileInput.addEventListener("change", (e) => { if (e.target.files[0]) setFile(e.target.files[0]); });
+        dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("drag"); });
+        dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag"));
+        dropzone.addEventListener("drop", (e) => {
+            e.preventDefault(); dropzone.classList.remove("drag");
+            if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+        });
+
+        const barColors = { Recycle: "#38bdf8", Compost: "#4ade80", Landfill: "#fb923c" };
+
+        predictBtn.addEventListener("click", async () => {
+            if (!selectedFile) return;
+            predictBtn.disabled = true;
+            predictBtn.textContent = "Running Inference...";
+            try {
+                const fd = new FormData();
+                fd.append("file", selectedFile);
+                const res = await fetch("/predict?explain=true", { method: "POST", body: fd });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Request failed");
+
+                document.getElementById("placeholder").classList.add("hidden");
+                document.getElementById("resultBox").classList.remove("hidden");
+
+                const predBadge = document.getElementById("predBadge");
+                predBadge.textContent = data.category;
+                predBadge.className = `badge ${data.category}`;
+                document.getElementById("confText").textContent = `${(data.confidence * 100).toFixed(1)}% confidence`;
+                document.getElementById("tierBadge").textContent = data.tier_used;
+                const cbBadge = document.getElementById("cbBadge");
+                cbBadge.textContent = `CB: ${data.circuit_breaker_state}`;
+                cbBadge.className = data.circuit_breaker_state === "CLOSED" ? "badge" : "badge warn";
+
+                const barsHtml = Object.entries(data.probabilities).map(([cls, p]) => `
+        <div class="bar-wrap">
+          <div class="bar-label"><span>${cls}</span><span>${(p * 100).toFixed(1)}%</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${(p * 100).toFixed(1)}%; background:${barColors[cls] || '#94a3b8'};"></div></div>
+        </div>
+      `).join("");
+                document.getElementById("probBars").innerHTML = barsHtml;
+
+                if (data.explanation && data.explanation.saliency_overlay_base64) {
+                    document.getElementById("camPreview").src = data.explanation.saliency_overlay_base64;
+                }
+
+                document.getElementById("latTotal").textContent = `${data.latency_ms.total} ms`;
+                const t2 = data.latency_ms.tier2 !== null ? `${data.latency_ms.tier2} ms` : "skipped";
+                document.getElementById("latTiers").textContent = `T1: ${data.latency_ms.tier1} ms | T2: ${t2}`;
+                document.getElementById("escInfo").textContent = `Escalated: ${data.escalated} | Fallback: ${data.fallback_triggered}`;
+                document.getElementById("asyncInfo").textContent = `Shadow: ${data.shadow_mirrored} | S3 AL: ${data.active_learning_queued}`;
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                predictBtn.disabled = false;
+                predictBtn.textContent = "Classify & Explain";
+            }
+        });
+
+        loadConfig();
+    </script>
+</body>
+
+</html>

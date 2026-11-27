@@ -1,0 +1,5 @@
+outs:
+- md5: 9c0cf46be3b3d46b48fafd9f39979238
+  size: 14891471
+  hash: md5
+  path: mobilenetv4_fp32.onnx
